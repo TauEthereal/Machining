@@ -1,37 +1,31 @@
 # operations/contour.py
 
-def contour(g, width, height, radius, direction, feed):
+def contour(g, width, height, radius, offset, feed):
     """
     Рисует внешний контур прямоугольника со скруглёнными углами.
-    Начинает с середины нижней стороны (0, -height/2).
-    direction — 'CCW' (против часовой) или 'CW' (по часовой).
+    offset — смещение наружу (обычно радиус фрезы).
+    Начинает с середины нижней стороны (0, -height/2 - offset).
+    Все координаты автоматически смещаются на offset.
     """
+    # Начальная точка — середина нижней стороны + смещение наружу
     start_x = 0
-    start_y = -height / 2
+    start_y = -height / 2 - offset
 
-    # Перемещение в начальную точку
     g.move(x=start_x, y=start_y)
-    g.write('f{feed}\n')
-
-    if direction == 'CCW':
-        # Обход против часовой стрелки (влево → вверх → вправо → вниз)
-        g.move(x=-(width / 2 - radius), y=start_y)
-        g.arc(x=-width / 2, y=-height / 2 + radius, radius=radius, direction='CW')
-        g.move(x=-width / 2, y=height / 2 - radius)
-        g.arc(x=-width / 2 + radius, y=height / 2, radius=radius, direction='CW')
-        g.move(x=width / 2 - radius, y=height / 2)
-        g.arc(x=width / 2, y=height / 2 - radius, radius=radius, direction='CW')
-        g.move(x=width / 2, y=-height / 2 + radius)
-        g.arc(x=width / 2 - radius, y=-height / 2, radius=radius, direction='CW')
-        g.move(x=start_x, y=start_y)
-
-    else:  # 'CW' — по часовой стрелке (вправо → вниз → влево → вверх)
-        g.move(x=width / 2 - radius, y=start_y)
-        g.arc(x=width / 2, y=-height / 2 + radius, radius=radius, direction='CCW')
-        g.move(x=width / 2, y=height / 2 - radius)
-        g.arc(x=width / 2 - radius, y=height / 2, radius=radius, direction='CCW')
-        g.move(x=-(width / 2 - radius), y=height / 2)
-        g.arc(x=-width / 2, y=height / 2 - radius, radius=radius, direction='CCW')
-        g.move(x=-width / 2, y=-height / 2 + radius)
-        g.arc(x=-width / 2 + radius, y=-height / 2, radius=radius, direction='CCW')
-        g.move(x=start_x, y=start_y)
+    g.move(z=5)  # безопасная высота (можно не писать, если уже подняты)
+    
+    # Обход против часовой стрелки (влево → вверх → вправо → вниз)
+    # Все координаты сдвинуты на offset
+    g.move(x=-(width / 2 - radius) - offset, y=start_y)
+    g.arc(x=-width / 2 - offset, y=-height / 2 + radius + offset,
+          radius=radius + offset, direction='CCW')
+    g.move(x=-width / 2 - offset, y=height / 2 - radius + offset)
+    g.arc(x=-width / 2 + radius + offset, y=height / 2 + offset,
+          radius=radius + offset, direction='CCW')
+    g.move(x=width / 2 - radius + offset, y=height / 2 + offset)
+    g.arc(x=width / 2 + offset, y=height / 2 - radius + offset,
+          radius=radius + offset, direction='CCW')
+    g.move(x=width / 2 + offset, y=-height / 2 + radius + offset)
+    g.arc(x=width / 2 - radius + offset, y=-height / 2 - offset,
+          radius=radius + offset, direction='CCW')
+    g.move(x=start_x, y=start_y)
